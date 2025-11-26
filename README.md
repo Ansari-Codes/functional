@@ -57,7 +57,7 @@ for i in 1..5:
     ...
 ```
 
-Meaning: inclusive range. It can also use iterable (for now, no iterables in this language)
+Meaning: inclusive range. It can also use iterable.
 
 ### **While loop**
 
