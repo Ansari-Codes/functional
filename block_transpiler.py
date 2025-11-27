@@ -156,7 +156,7 @@ def sourceToLine(source: str) -> List[str]:
             
             if line:
                 is_comment = False
-                for comment_start in ['>>', '#', '///', '/*', '*/']:
+                for comment_start in ['>>', '#', '//', '/*', '*/']:
                     if line.startswith(comment_start):
                         is_comment = True
                         break

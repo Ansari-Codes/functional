@@ -1,0 +1,36 @@
+>> Define variables
+x = 1
+y = -2
+strings = "hello"
+multi = "line1
+line2
+line3"
+
+// Conditionals
+if x > 0:
+    print("X is positive")
+elif x < 0:
+    print("X is negative")
+else:
+    print("X is zero")
+
+# while loop
+while x < 11:
+    print(x)
+    x = x + 1
+
+# for loop
+for i in 1..2:
+    print(i)
+
+#> functions
+fn add[x, y=2]:
+    -> x + y
+
+z = add(1)
+lst = [0, 1, 2, 3]
+first = lst[0]
+slc = lst[0,2]
+print(first, slc)
+
+dct = [0: 1, 1: 2, 2:3]
