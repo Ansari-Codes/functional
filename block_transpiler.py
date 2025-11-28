@@ -29,7 +29,7 @@ class NUMBER(ASTNode):
     """Numeric literal node"""
     def __init__(self, value):
         self.value = value
-        self.py_value = str(value)
+        self.py_value = value
 
 
 class OPERAND(ASTNode):
@@ -37,6 +37,9 @@ class OPERAND(ASTNode):
     def __init__(self, value):
         self.value = value
         self.py_value = str(value)
+    
+    def _to_py(self, value):
+        pass
 
 
 class OPERATOR(ASTNode):
@@ -113,7 +116,7 @@ def sourceToLine(source: str) -> List[str]:
     """
     Convert Block source code into a list of lines.
     - Handles multiline strings by converting them to single-line with \\n
-    - Removes comments (>>, #, ///, /* */)
+    - Removes comments (>>, #, //, /* */)
     - Preserves all other text line-by-line
     """
     lines = []
@@ -178,7 +181,7 @@ def sourceToLine(source: str) -> List[str]:
     if current_line.strip():
         line = current_line.strip()
         is_comment = False
-        for comment_start in ['>>', '#', '///', '/*', '*/']:
+        for comment_start in ['>>', '#', '//', '/*', '*/']:
             if line.startswith(comment_start):
                 is_comment = True
                 break
@@ -568,6 +571,7 @@ def transpile(source: str) -> str:
     try:
         lines = sourceToLine(source)
         ast_nodes = linesToAst(lines)
+        print(ast_nodes)
         python_code = astToPy(ast_nodes)
         return python_code
     except Exception as e:
