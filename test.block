@@ -8,20 +8,20 @@ line3"
 
 // Conditionals
 if x > 0:
-    print("X is positive")
+    echo("X is positive")
 elif x < 0:
-    print("X is negative")
+    echo("X is negative")
 else:
-    print("X is zero")
+    echo("X is zero")
 
 # while loop
 while x < 11:
-    print(x)
+    echo(x)
     x = x + 1
 
 # for loop
 for i in 1..2:
-    print(i)
+    echo(i)
 
 #> functions
 fn add[x, y=2]:
@@ -31,6 +31,13 @@ z = add(1)
 lst = [0, 1, 2, 3]
 first = lst[0]
 slc = lst[0,2]
-print(first, slc)
-set_dct = ["[0:1]", [1: 2]]
+echo(first, slc)
 dct = [0: 1, 1: 2, 2:3]
+echo(typeOf(dct))
+echo(slc)
+echo(first)
+echo(z)
+echo(typeOf(add))
+x = "10"
+echo(typeOf(toNum(x)))
+echo(true)

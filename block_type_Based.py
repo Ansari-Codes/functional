@@ -1,12 +1,7 @@
 import re
 import sys
 from typing import List, Union, Dict, Set, Optional
-
-
-class BlockError(Exception):
-    """Custom exception for Block language transpilation errors"""
-    pass
-
+from block_builtins import BlockError, BUILTIN_TYPES, BUILTIN_FUNCTIONS, BUILTIN_CONSTANTS
 
 class ASTNode:
     """Base class for all AST nodes"""
@@ -119,13 +114,9 @@ class EOL(ASTNode):
 class TypeSystem:
     """Track types of variables and functions in Block code"""
     
-    BUILTIN_TYPES = {'num', 'bool', 'str', 'func', 'list', 'tuple', 'map', 'set'}
-    BUILTIN_FUNCTIONS = {'print', 'len', 'range', 'type', 'str', 'int', 'float', 'bool', 'list', 'dict', 'set', 'tuple'}
-    BUILTIN_CONSTANTS = {
-        'true': ('bool', 'True'),
-        'false': ('bool', 'False'),
-        'none': ('str', 'None'),  # None type in Python
-    }
+    BUILTIN_TYPES = set(BUILTIN_TYPES)
+    BUILTIN_FUNCTIONS = set(BUILTIN_FUNCTIONS)
+    BUILTIN_CONSTANTS = BUILTIN_CONSTANTS
     
     def __init__(self):
         self.variables: Dict[str, str] = {}  # var_name -> type
@@ -943,6 +934,9 @@ def main():
                 source = f.read()
             
             python_code = transpile(source)
+            with open("block_builtins.py", 'r') as f:
+                b = f.read()
+            python_code = b + '\n' + python_code
             
             with open(output_file, 'w') as f:
                 f.write(python_code)
