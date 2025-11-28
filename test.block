@@ -1,43 +1,115 @@
->> Define variables
-x = 1
-y = -2
-strings = "hello"
-multi = "line1
-line2
-line3"
+# ============================
+# CORE
+# ============================
+echo("=== CORE BUILTINS ===")
+echo(typeOf("hello"))
+echo(toStr(123))
+echo(toNum("10"))
 
-// Conditionals
-if x > 0:
-    echo("X is positive")
-elif x < 0:
-    echo("X is negative")
-else:
-    echo("X is zero")
-
-# while loop
-while x < 11:
-    echo(x)
-    x = x + 1
-
-# for loop
-for i in 1..2:
-    echo(i)
-
-#> functions
-fn add[x, y=2]:
-    -> x + y
-
-z = add(1)
-lst = [0, 1, 2, 3]
-first = lst[0]
-slc = lst[0,2]
-echo(first, slc)
-dct = [0: 1, 1: 2, 2:3]
-echo(typeOf(dct))
-echo(slc)
-echo(first)
-echo(z)
-echo(typeOf(add))
-x = "10"
-echo(typeOf(toNum(x)))
+# ============================
+# BOOLEAN CONSTANTS
+# ============================
 echo(true)
+echo(false)
+echo(none)
+
+# ============================
+# STRING BUILTINS
+# ============================
+s = "Hello World"
+
+echo("=== STRING BUILTINS ===")
+echo(strToUpper(s))
+echo(strToLower(s))
+echo(strToTitle(s))
+echo(strToCapital(s))
+echo(strSwapCase(s))
+
+echo(strSplit(s, " "))
+echo(strCount(s, "l"))
+echo(strEncode(s))
+
+echo(strStrip("   hi   "))
+echo(strLStrip("   left"))
+echo(strRStrip("right   "))
+
+echo(strReplace(s, "World", "BLOCK"))
+echo(strStartsWith(s, "Hel"))
+echo(strEndsWith(s, "rld"))
+echo(strFind(s, "World"))
+echo(strLen(s))
+
+# ============================
+# NUMBER BUILTINS
+# ============================
+x = -12.75
+y = 5
+
+echo("=== NUMBER BUILTINS ===")
+echo(numAbs(x))
+echo(numRound(x))
+echo(numRound(x, 1))
+echo(numFloor(x))
+echo(numCeil(x))
+echo(numTrunc(x))
+echo(numPow(y, 3))
+echo(numSqrt(16))
+echo(numClamp(15, 0, 10))
+echo(numSign(x))
+echo(numSign(0))
+echo(numSign(10))
+
+# ============================
+# LIST BUILTINS
+# ============================
+lst = [1, 2, 3]
+
+echo("=== LIST BUILTINS ===")
+echo(listLen(lst))
+echo(listAppend(lst, 4))
+echo(listPop(lst))
+echo(listExtend(lst, [5, 6]))
+echo(listContains(lst, 5))
+
+# ============================
+# TUPLE BUILTINS
+# ============================
+t = (10, 20, 30)
+
+echo("=== TUPLE BUILTINS ===")
+echo(tupleLen(t))
+echo(tupleContains(t, 20))
+
+# ============================
+# SET BUILTINS
+# ============================
+st = {1, 2, 3}
+
+echo("=== SET BUILTINS ===")
+echo(setAdd(st, 4))
+echo(setRemove(st, 2))
+echo(setContains(st, 3))
+
+# ============================
+# MAP BUILTINS
+# ============================
+mp = ["a": 1, "b": 2, "c": 3]
+
+echo("=== MAP BUILTINS ===")
+echo(mapGet(mp, "a"))
+echo(mapGet(mp, "missing", "default"))
+echo(mapSet(mp, "d", 4))
+echo(mapKeys(mp))
+echo(mapValues(mp))
+echo(mapItems(mp))
+
+# ============================
+# TYPE TESTS
+# ============================
+echo("=== TYPE TESTS ===")
+echo(typeOf(lst))
+echo(typeOf(t))
+echo(typeOf(st))
+echo(typeOf(mp))
+echo(typeOf(numAbs))
+
