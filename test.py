@@ -28,7 +28,7 @@ BUILTIN_FUNCTIONS = (
 BUILTIN_CONSTANTS = {        
         'true': ('boolean', 'boolean(True)'),
         'false': ('boolean', 'boolean()'),
-        'none': ('str', 'none()'),
+        'none': ('none', 'NONE'),
     }
 
 class boolean(int):
@@ -40,11 +40,17 @@ class boolean(int):
 
     def __str__(self) -> str:
         return self.__repr__()
+
 class none:
-    def __repr__(self) -> str:
-        return "none"
-    def __str__(self) -> str:
-        return self.__repr__()
+    _instance = None
+    def __new__(cls):
+        if cls._instance is None: cls._instance = super().__new__(cls)
+        return cls._instance
+    def __repr__(self): return "none"
+    __str__ = __repr__
+    def __bool__(self): return False
+    def __eq__(self, other): return other is None or isinstance(other, none)
+NONE = none()
 
 def _isString(obj, func): 
     if not isinstance(obj, str):
@@ -142,10 +148,10 @@ def strCount(obj, sub):
 def strEncode(obj, encoding='utf-8'):
     if _isString(obj, strEncode):
         try:
-            return obj.encode(encoding)
+            return str(obj.encode(encoding))
         except Exception:
             raise BlockError(f"strEncode: invalid encoding '{encoding}'.")
-    return b""
+    return ""
 
 # Number Operations
 def numAbs(x):
@@ -234,7 +240,7 @@ echo(toStr(123))
 echo(toNum("10"))
 echo(boolean(True))
 echo(boolean())
-echo(none())
+echo(NONE)
 block_s="Hello World"
 echo("=== STRING BUILTINS ===")
 echo(strToUpper(block_s))

@@ -3,9 +3,11 @@ class BlockError(Exception):
     pass
 
 BUILTIN_TYPES = ("str", "num", "boolean", "list", "tuple", "set", "map", "func", "none")
+BUILTIN_COLLECTIONS = ("list", "tuple", "set", "map")
 BUILTIN_FUNCTIONS = (
     # core
-    "echo", "typeOf", "toStr", "toNum",
+    "echo", "typeOf", "toStr", "toNum", "toList", "toTuple",
+    "toSet", "toMap", "toBool", "len"
     # string
     "strToUpper", "strToLower", "strToTitle", "strToCapital",
     "strSwapCase", "strSplit", "strCount", "strEncode",
@@ -28,7 +30,7 @@ BUILTIN_FUNCTIONS = (
 BUILTIN_CONSTANTS = {        
         'true': ('boolean', 'boolean(True)'),
         'false': ('boolean', 'boolean()'),
-        'none': ('str', 'none()'),
+        'none': ('none', 'NONE'),
     }
 
 class boolean(int):
@@ -40,11 +42,17 @@ class boolean(int):
 
     def __str__(self) -> str:
         return self.__repr__()
+
 class none:
-    def __repr__(self) -> str:
-        return "none"
-    def __str__(self) -> str:
-        return self.__repr__()
+    _instance = None
+    def __new__(cls):
+        if cls._instance is None: cls._instance = super().__new__(cls)
+        return cls._instance
+    def __repr__(self): return "none"
+    __str__ = __repr__
+    def __bool__(self): return False
+    def __eq__(self, other): return other is None or isinstance(other, none)
+NONE = none()
 
 def _isString(obj, func): 
     if not isinstance(obj, str):
@@ -82,8 +90,8 @@ def echo(*args, **kwargs):
 def typeOf(obj):
     t = 'none'
     if isinstance(obj, str): t="str"
+    elif isinstance(obj, (bool, boolean, int)): t="boolean"
     elif isinstance(obj, (int, float)): t="num"
-    elif isinstance(obj, (bool)): t="boolean"
     elif isinstance(obj, list): t="list"
     elif isinstance(obj, tuple): t="tuple"
     elif isinstance(obj, set): t="set"
@@ -105,6 +113,55 @@ def toNum(obj):
         return float(obj)
     except:
         raise BlockError("toNum: cannot convert to number.")
+
+def toList(obj):
+    if typeOf(obj) in BUILTIN_COLLECTIONS + ('str',):
+        if typeOf(obj) == 'str': return [i for i in obj]
+        elif typeOf(obj) == 'map': return list(obj.items())
+        else: return list(obj)
+    else:
+        raise BlockError(f"toList: Cannot convert object of type '{typeOf(obj)}' to list!")
+
+def toTuple(obj):
+    if typeOf(obj) in BUILTIN_COLLECTIONS + ('str',):
+        if typeOf(obj) == 'str': return tuple([i for i in obj])
+        elif typeOf(obj) == 'map': return tuple(obj.items())
+        else: return tuple(obj)
+    else:
+        raise BlockError(f"toTuple: Cannot convert object of type '{typeOf(obj)}' to tuplr!")
+
+def toSet(obj):
+    t = typeOf(obj)
+    if t == 'set': return obj
+    if t == 'str': return {ch for ch in obj}
+    if t == 'list' or t == 'tuple':
+        try: return set(obj)
+        except TypeError: raise BlockError("toSet: elements must be hashable to convert to set.")
+    if t == 'map':
+        for k, v in obj.items():
+            try: hash((k, v))
+            except TypeError: raise BlockError("toSet: cannot convert map to set; key/value not hashable.")
+        return set(obj.items())
+    raise BlockError(f"toSet: Cannot convert object of type '{t}' to set!")
+
+def toMap(obj):
+    t = typeOf(obj)
+    if t == 'map': return obj
+    if t == 'str': return {i:ch for i, ch in enumerate(obj)}
+    if t in ('list', 'tuple'):
+        result = {}
+        for item in obj:
+            if not isinstance(item, (list, tuple)) or len(item) != 2:
+                raise BlockError("toMap: expected (key, value) pairs.")
+            key, value = item
+            try: hash(key)
+            except Exception: raise BlockError("toMap: key must be str, tupl or num.")
+            result[key] = value
+        return result
+    if t == 'set': raise BlockError("toMap: cannot convert set to map due to hashability issues.")
+    raise BlockError(f"toMap: Cannot convert object of type '{t}' to map!")
+
+def toBool(obj): return boolean(obj)
 
 # String operations
 def strStrip(obj: str): 
@@ -142,10 +199,10 @@ def strCount(obj, sub):
 def strEncode(obj, encoding='utf-8'):
     if _isString(obj, strEncode):
         try:
-            return obj.encode(encoding)
+            return str(obj.encode(encoding))
         except Exception:
             raise BlockError(f"strEncode: invalid encoding '{encoding}'.")
-    return b""
+    return ""
 
 # Number Operations
 def numAbs(x):
