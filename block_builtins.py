@@ -3,7 +3,7 @@ class BlockError(Exception):
     pass
 
 BUILTIN_TYPES = ("str", "num", "boolean", "list", "tuple", "set", "map", "func", "none")
-BUILTIN_COLLECTIONS = ("list", "tuple", "set", "map")
+BUILTIN_COLLECTIONS = ("list", "tuple", "set", "map", "str")
 BUILTIN_FUNCTIONS = (
     # core
     "echo", "typeOf", "toStr", "toNum", "toList", "toTuple",
@@ -89,14 +89,16 @@ def echo(*args, **kwargs):
 
 def typeOf(obj):
     t = 'none'
-    if isinstance(obj, str): t="str"
-    elif isinstance(obj, (bool, boolean, int)): t="boolean"
-    elif isinstance(obj, (int, float)): t="num"
-    elif isinstance(obj, list): t="list"
-    elif isinstance(obj, tuple): t="tuple"
-    elif isinstance(obj, set): t="set"
-    elif isinstance(obj, dict): t="map"
-    elif getattr(
+    if isinstance(obj, str): return "str"
+    if isinstance(obj, boolean): return "boolean"
+    if isinstance(obj, bool): return "boolean"
+    if isinstance(obj, (int, float)): return "num"
+    if isinstance(obj, list): return "list"
+    if isinstance(obj, tuple): return "tuple"
+    if isinstance(obj, set): return "set"
+    if isinstance(obj, dict): return "map"
+    if callable(obj): return "func"
+    if getattr(
             getattr(
                 obj,
                 "__class__", {}
@@ -115,7 +117,7 @@ def toNum(obj):
         raise BlockError("toNum: cannot convert to number.")
 
 def toList(obj):
-    if typeOf(obj) in BUILTIN_COLLECTIONS + ('str',):
+    if typeOf(obj) in BUILTIN_COLLECTIONS:
         if typeOf(obj) == 'str': return [i for i in obj]
         elif typeOf(obj) == 'map': return list(obj.items())
         else: return list(obj)
@@ -123,7 +125,7 @@ def toList(obj):
         raise BlockError(f"toList: Cannot convert object of type '{typeOf(obj)}' to list!")
 
 def toTuple(obj):
-    if typeOf(obj) in BUILTIN_COLLECTIONS + ('str',):
+    if typeOf(obj) in BUILTIN_COLLECTIONS:
         if typeOf(obj) == 'str': return tuple([i for i in obj])
         elif typeOf(obj) == 'map': return tuple(obj.items())
         else: return tuple(obj)
@@ -155,7 +157,7 @@ def toMap(obj):
                 raise BlockError("toMap: expected (key, value) pairs.")
             key, value = item
             try: hash(key)
-            except Exception: raise BlockError("toMap: key must be str, tupl or num.")
+            except Exception: raise BlockError("toMap: key must be str, tuple or num.")
             result[key] = value
         return result
     if t == 'set': raise BlockError("toMap: cannot convert set to map due to hashability issues.")
@@ -221,20 +223,33 @@ def numTrunc(x):
     if _isNum(x, numTrunc):
         import math
         return math.trunc(x)
-def numPow(a, b):
+def numPow(a, b, mod):
     if _isNum(a, numPow) and _isNum(b, numPow):
-        return a ** b
+        return pow(a,b,mod)
 def numSqrt(x):
     if _isNum(x, numSqrt):
         import math
-        if x < 0:
-            raise BlockError("numSqrt: cannot sqrt negative number.")
+        if x < 0: return (0, math.sqrt(abs(x)))
         return math.sqrt(x)
+def numCbrt(x):
+    if _isNum(x, numCbrt):
+        import math
+        return math.cbrt(x)
 def numClamp(x, lo, hi):
     if _isNum(x, numClamp) and _isNum(lo, numClamp) and _isNum(hi, numClamp):
         return max(lo, min(x, hi))
 def numSign(x):
     return (-1 if x < 0 else (1 if x > 0 else 0)) if _isNum(x, numSign) else 0
+def numMin(x, y):
+    return min(x, y)
+def numMax(x, y):
+    return max(x, y)
+def numBin(x):
+    return bin(x)
+def numOct(x):
+    return oct(x)
+def numHex(x):
+    return hex(x)
 
 # List operations
 def listAppend(lst, value):
@@ -284,3 +299,69 @@ def mapValues(m):
     return list(m.values()) if _isMap(m, mapValues) else []
 def mapItems(m):
     return list(m.items()) if _isMap(m, mapItems) else []
+
+# Collection Specific
+def colIsEmtpy(obj):
+    if typeOf(obj) not in BUILTIN_COLLECTIONS:
+        raise BlockError(f"isEmtpy requires an obj of type {','.join([i for i in BUILTIN_COLLECTIONS])}.")
+    return boolean(len(obj) == 0)
+
+def colOfNums(start=0, stop=0, step=0, func=toNum):
+    return tuple([func(i) for i in range(start, stop + step, step)])
+
+def colFilter(obj, func):
+    if typeOf(obj) in BUILTIN_COLLECTIONS:
+        if typeOf(obj) == 'map':
+            return toMap({k:v for k,v in obj.items() if func(k,v)})
+        elif typeOf(obj) == 'list':
+            return [i for i in obj if func(i)]
+        elif typeOf(obj) == 'tuple':
+            return (i for i in obj if func(i))
+        elif typeOf(obj) == 'set':
+            return {i for i in obj if func(i)}
+        elif typeOf(obj) == 'str':
+            return ''.join([i for i in obj if func(i)])
+    else:
+        raise BlockError(f"colFilter only accepts one of {','.join([i for i in BUILTIN_COLLECTIONS])}.")
+
+def colApplyF(obj, func):
+    if typeOf(obj) in BUILTIN_COLLECTIONS:
+        if typeOf(obj) == 'map':
+            return toMap({k:func(v) for k,v in obj.items()})
+        elif typeOf(obj) == 'list':
+            return [func(i) for i in obj]
+        elif typeOf(obj) == 'tuple':
+            return (func(i) for i in obj)
+        elif typeOf(obj) == 'set':
+            return {func(i) for i in obj}
+        elif typeOf(obj) == 'str':
+            return ''.join([func(i) for i in obj])
+    else:
+        raise BlockError(f"colApplyF only accepts one of {','.join([i for i in BUILTIN_COLLECTIONS])}.")
+
+def colJoin(obj, joiner=''):
+    return joiner.join(obj)
+
+# Basic utilities
+def ask(prompt: str, forward=toStr):
+    if typeOf(forward) != 'func':
+        raise BlockError("ask: The `forward` parameter must be of type 'func'.")
+    inp = input(prompt)
+    return forward(inp)
+
+def ucp(obj):
+    return ord(obj)
+def char(obj):
+    return chr(obj)
+
+# File io
+def fOpen(path, mode, *args):
+    return open(path, mode, *args)
+def fRead(f):
+    if f.readable(): return f.read()
+    else: raise BlockError("Cannot read the file because it is not opened in reading mode.")
+def fWrite(f, content:str = ''):
+    if f.writeable(): return f.write(content)
+    else: raise BlockError("Cannot write in the file because it is not opened in writing mode.")
+def fClose(f):
+    return f.close()
