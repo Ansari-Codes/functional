@@ -5,6 +5,7 @@ echo("=== BASIC TYPES ===")
 name = "Abubakar"
 age = 19
 skills = ["python", "js", "block"]
+True = true
 
 echo("name type: " + typeOf(name))
 echo("age type: " + typeOf(age))

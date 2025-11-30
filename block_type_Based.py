@@ -8,7 +8,7 @@ class ASTNode:
     def __init__(self, value):
         self.value = value
         self.py_value = value
-    
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.value!r})"
 
@@ -36,7 +36,7 @@ class OPERAND(ASTNode):
 
 class OPERATOR(ASTNode):
     """Operator node with Block to Python mapping"""
-    
+
     operator_map = {
         '^': '**',
         '!': 'not ',
@@ -58,9 +58,9 @@ class OPERATOR(ASTNode):
         '(': '(',
         ')': ')',
     }
-    
+
     special_operators = ['..']
-    
+
     def __init__(self, value):
         self.value = value
         if value in self.operator_map:
@@ -73,9 +73,9 @@ class OPERATOR(ASTNode):
 
 class KEYWORD(ASTNode):
     """Keyword node"""
-    
+
     keywords = ['for', 'while', 'if', 'elif', 'else', 'in', 'fn', '->']
-    
+
     def __init__(self, value):
         self.value = value
         if value == '->':
@@ -91,7 +91,7 @@ class SPACE(ASTNode):
     def __init__(self, value):
         self.value = value
         self.py_value = value
-    
+
     def get_indent_level(self):
         """Calculate indentation level"""
         return len(self.value)
@@ -113,11 +113,11 @@ class EOL(ASTNode):
 
 class TypeSystem:
     """Track types of variables and functions in Block code"""
-    
+
     BUILTIN_TYPES = set(BUILTIN_TYPES)
     BUILTIN_FUNCTIONS = set(BUILTIN_FUNCTIONS)
     BUILTIN_CONSTANTS = BUILTIN_CONSTANTS
-    
+
     def __init__(self):
         self.variables: Dict[str, str] = {}  # var_name -> type
         self.functions: Dict[str, str] = {}  # func_name -> return_type
@@ -125,13 +125,13 @@ class TypeSystem:
         # Initialize builtin functions
         for fname in self.BUILTIN_FUNCTIONS:
             self.functions[fname] = 'num'  # default return type
-    
+
     def define_variable(self, name: str, var_type: str) -> None:
         """Define a variable with its type"""
         if var_type not in self.BUILTIN_TYPES and not self._is_collection_type(var_type):
             raise BlockError(f"Undefined type '{var_type}'")
         self.variables[name] = var_type
-    
+
     def define_function(self, name: str, return_type: str, params: List[tuple]) -> None:
         """Define a function with return type and parameters"""
         if return_type not in self.BUILTIN_TYPES and not self._is_collection_type(return_type):
@@ -141,23 +141,23 @@ class TypeSystem:
         for param_name, param_type in params:
             if param_type not in self.BUILTIN_TYPES and not self._is_collection_type(param_type):
                 raise BlockError(f"Undefined parameter type '{param_type}'")
-    
+
     def is_defined_variable(self, name: str) -> bool:
         """Check if variable is defined"""
         return name in self.variables
-    
+
     def is_defined_function(self, name: str) -> bool:
         """Check if function is defined"""
         return name in self.functions
-    
+
     def get_variable_type(self, name: str) -> Optional[str]:
         """Get variable type"""
         return self.variables.get(name)
-    
+
     def get_function_type(self, name: str) -> Optional[str]:
         """Get function return type"""
         return self.functions.get(name)
-    
+
     def _is_collection_type(self, type_str: str) -> bool:
         """Check if type is a valid collection type"""
         # [type], (type), {type}, {key:val}
@@ -185,10 +185,10 @@ def sourceToLine(source: str) -> List[str]:
     current_line = ""
     in_string = False
     string_start = -1
-    
+
     while i < len(source):
         char = source[i]
-        
+
         if in_block_comment:
             if i + 1 < len(source) and source[i:i+2] == '*/':
                 in_block_comment = False
@@ -196,7 +196,7 @@ def sourceToLine(source: str) -> List[str]:
                 continue
             i += 1
             continue
-        
+
         if char == '"' and (i == 0 or source[i-1] != '\\'):
             if not in_string:
                 in_string = True
@@ -209,35 +209,35 @@ def sourceToLine(source: str) -> List[str]:
                 string_start = -1
             i += 1
             continue
-        
+
         if in_string:
             i += 1
             continue
-        
+
         if char == '\n':
             line = current_line.strip()
-            
+
             if line:
                 is_comment = False
                 for comment_start in ['>>', '#', '//', '/*', '*/']:
                     if line.startswith(comment_start):
                         is_comment = True
                         break
-                
+
                 if line.startswith('/*'):
                     in_block_comment = True
                     is_comment = True
-                
+
                 if not is_comment:
                     lines.append(current_line.rstrip())
-            
+
             current_line = ""
             i += 1
             continue
-        
+
         current_line += char
         i += 1
-    
+
     if current_line.strip():
         line = current_line.strip()
         is_comment = False
@@ -245,10 +245,10 @@ def sourceToLine(source: str) -> List[str]:
             if line.startswith(comment_start):
                 is_comment = True
                 break
-        
+
         if not is_comment:
             lines.append(current_line.rstrip())
-    
+
     return lines
 
 
@@ -258,24 +258,24 @@ def linesToAst(lines: List[str]) -> List[ASTNode]:
     Each line is tokenized and converted to appropriate AST nodes.
     """
     ast_nodes = []
-    
+
     for line in lines:
         if not line:
             ast_nodes.append(EOL())
             continue
-        
+
         indent = len(line) - len(line.lstrip())
         if indent > 0:
             ast_nodes.append(SPACE(' ' * indent))
-        
+
         content = line.lstrip()
         tokens = tokenize_line(content)
-        
+
         for token in tokens:
             ast_nodes.append(token)
-        
+
         ast_nodes.append(EOL())
-    
+
     return ast_nodes
 
 
@@ -283,12 +283,12 @@ def tokenize_line(content: str) -> List[ASTNode]:
     """Tokenize a single line of Block code into AST nodes"""
     tokens = []
     i = 0
-    
+
     while i < len(content):
         if content[i].isspace():
             i += 1
             continue
-        
+
         if content[i] == '"':
             end = i + 1
             while end < len(content):
@@ -299,7 +299,7 @@ def tokenize_line(content: str) -> List[ASTNode]:
             tokens.append(STRING(string_content))
             i = end + 1
             continue
-        
+
         if content[i].isdigit() or (content[i] == '-' and i+1 < len(content) and content[i+1].isdigit()):
             end = i + 1
             has_dot = False
@@ -316,7 +316,7 @@ def tokenize_line(content: str) -> List[ASTNode]:
                 tokens.append(NUMBER(int(num_str)))
             i = end
             continue
-        
+
         if i + 1 < len(content) and content[i:i+2] in ['..', '==', '!=', '>=', '<=', '//', '->']:
             op = content[i:i+2]
             if op == '->':
@@ -325,32 +325,32 @@ def tokenize_line(content: str) -> List[ASTNode]:
                 tokens.append(OPERATOR(op))
             i += 2
             continue
-        
+
         if content[i] in '+-*/^%=!&|()<>{}':
             tokens.append(OPERATOR(content[i]))
             i += 1
             continue
-        
+
         if content[i] == '[' or content[i] == ']' or content[i] == ',' or content[i] == ':':
             tokens.append(OPERAND(content[i]))
             i += 1
             continue
-        
+
         if content[i].isalpha() or content[i] == '_':
             end = i + 1
             while end < len(content) and (content[end].isalnum() or content[end] == '_'):
                 end += 1
             word = content[i:end]
-            
+
             if word in KEYWORD.keywords:
                 tokens.append(KEYWORD(word))
             else:
                 tokens.append(OPERAND(word))
             i = end
             continue
-        
+
         i += 1
-    
+
     return tokens
 
 
@@ -358,10 +358,10 @@ def extract_type_info(ast_nodes: List[ASTNode], start_idx: int) -> tuple:
     """Extract type name from colon position, returns (type_name, end_idx)"""
     if start_idx >= len(ast_nodes) or not (isinstance(ast_nodes[start_idx], OPERAND) and ast_nodes[start_idx].value == ':'):
         return None, start_idx
-    
+
     idx = start_idx + 1
     type_tokens = []
-    
+
     while idx < len(ast_nodes):
         node = ast_nodes[idx]
         if isinstance(node, EOL) or (isinstance(node, OPERAND) and node.value in ['=', ',']):
@@ -386,7 +386,7 @@ def extract_type_info(ast_nodes: List[ASTNode], start_idx: int) -> tuple:
             break
         else:
             break
-    
+
     type_name = ''.join(type_tokens) if type_tokens else None
     return type_name, idx
 
@@ -395,14 +395,14 @@ def infer_value_type(ast_nodes: List[ASTNode], start_idx: int, type_system: Type
     """Infer the type of a value starting at start_idx"""
     if start_idx >= len(ast_nodes):
         return 'num'  # default
-    
+
     node = ast_nodes[start_idx]
-    
+
     # Check for builtin constants
     if isinstance(node, OPERAND) and node.value in TypeSystem.BUILTIN_CONSTANTS:
         const_type, _ = TypeSystem.BUILTIN_CONSTANTS[node.value]
         return const_type
-    
+
     if isinstance(node, STRING):
         return 'str'
     if isinstance(node, NUMBER):
@@ -418,7 +418,7 @@ def infer_value_type(ast_nodes: List[ASTNode], start_idx: int, type_system: Type
             return type_system.variables[node.value]
         if node.value in type_system.functions:
             return 'func'
-    
+
     return 'num'  # default
 
 
@@ -429,12 +429,12 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
     """
     type_system = TypeSystem()
     collection_variables = set()
-    
+
     # First pass: collect function and variable definitions
     i = 0
     while i < len(ast_nodes):
         node = ast_nodes[i]
-        
+
         # Collect loop variable definitions (for i in ...)
         if isinstance(node, KEYWORD) and node.value == 'for':
             j = i + 1
@@ -445,7 +445,17 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                     type_system.define_variable(loop_var, 'num')
                 except BlockError as e:
                     raise e
-        
+
+        if isinstance(node, OPERAND) and i + 1 < len(ast_nodes):
+            next_token = ast_nodes[i + 1]
+            if isinstance(next_token, OPERATOR) and next_token.value == '=':
+                var_name = node.value
+                if var_name not in type_system.BUILTIN_FUNCTIONS and var_name not in type_system.BUILTIN_CONSTANTS:
+                    if i + 2 < len(ast_nodes):
+                        inferred_type = infer_value_type(ast_nodes, i + 2, type_system)
+                        try: type_system.define_variable(var_name, inferred_type)
+                        except BlockError: pass
+
         # Collect function definitions
         if isinstance(node, KEYWORD) and node.value == 'fn':
             if i + 1 < len(ast_nodes) and isinstance(ast_nodes[i + 1], OPERAND):
@@ -460,7 +470,7 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                     ret_type_name, _ = extract_type_info(ast_nodes, j)
                     if ret_type_name in TypeSystem.BUILTIN_TYPES:
                         ret_type = ret_type_name
-                
+
                 # Extract parameters (with optional default values)
                 params = []
                 param_defaults = {}  # param_name -> default_value
@@ -472,14 +482,14 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                             param_name = ast_nodes[k].value
                             param_type = 'num'
                             k += 1
-                            
+
                             # Skip type annotation if present
                             if k < len(ast_nodes) and isinstance(ast_nodes[k], OPERAND) and ast_nodes[k].value == ':':
                                 pt, type_end = extract_type_info(ast_nodes, k)
                                 if pt in TypeSystem.BUILTIN_TYPES:
                                     param_type = pt
                                 k = type_end
-                            
+
                             # Check for default value (param_name=value)
                             if k < len(ast_nodes) and isinstance(ast_nodes[k], OPERATOR) and ast_nodes[k].value == '=':
                                 k += 1
@@ -490,22 +500,22 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                     k += 1
                                 default_value = ''.join(t.py_value if hasattr(t, 'py_value') else str(t) for t in default_tokens).strip()
                                 param_defaults[param_name] = default_value
-                            
+
                             params.append((param_name, param_type))
                             continue
                         k += 1
-                
+
                 try:
                     type_system.define_function(func_name, ret_type, params)
                 except BlockError as e:
                     raise e
-        
+
         # Collect variable definitions (with or without types)
         if isinstance(node, OPERAND) and node.value not in ['[', ']', ',', ':', '=']:
             if i + 1 < len(ast_nodes):
                 next_node = ast_nodes[i + 1]
                 var_name = node.value
-                
+
                 # Case 1: Type annotation (x:num = value)
                 if isinstance(next_node, OPERAND) and next_node.value == ':':
                     var_type, type_end = extract_type_info(ast_nodes, i + 1)
@@ -515,41 +525,37 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                 type_system.define_variable(var_name, var_type)
                             except BlockError as e:
                                 raise e
-                    
+
                     # Check if it's an assignment
                     if type_end < len(ast_nodes) and isinstance(ast_nodes[type_end], OPERATOR) and ast_nodes[type_end].value == '=':
                         next_token = ast_nodes[type_end + 1] if type_end + 1 < len(ast_nodes) else None
                         if isinstance(next_token, OPERAND) and next_token.value in ['[', '(', '{']:
                             collection_variables.add(var_name)
-                
+
                 # Case 2: No type annotation (x = value)
                 elif isinstance(next_node, OPERATOR) and next_node.value == '=':
                     # Infer type from the value
                     value_idx = i + 2
                     if value_idx < len(ast_nodes):
-                        value_node = ast_nodes[value_idx]
                         inferred_type = infer_value_type(ast_nodes, value_idx, type_system)
                         try:
                             type_system.define_variable(var_name, inferred_type)
                         except BlockError as e:
-                            raise e
-                        
-                        # Track if it's a collection
-                        if isinstance(value_node, OPERAND) and value_node.value in ['[', '(', '{']:
-                            collection_variables.add(var_name)
-        
-        i += 1
+                            # If already defined, that's ok
+                            pass
     
+        i += 1
+
     # Second pass: generate Python code with validation
     python_code = []
     current_line = ""
     i = 0
-    
+
     in_control_flow = False
-    
+
     while i < len(ast_nodes):
         node = ast_nodes[i]
-        
+
         if isinstance(node, EOL):
             # Add colon for control flow and function def statements
             if current_line and not current_line.rstrip().endswith(':'):
@@ -559,26 +565,26 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
             current_line = ""
             i += 1
             continue
-        
+
         if isinstance(node, SPACE):
             current_line += node.py_value
             i += 1
             continue
-        
+
         if isinstance(node, KEYWORD):
             if node.value == 'fn':
                 current_line += 'def '
                 i += 1
-                
+
                 if i < len(ast_nodes) and isinstance(ast_nodes[i], OPERAND):
                     func_name = ast_nodes[i].value
                     current_line += f'block_{func_name}'
                     i += 1
-                
+
                 if i < len(ast_nodes) and isinstance(ast_nodes[i], OPERAND) and ast_nodes[i].value == '[':
                     current_line += '('
                     i += 1
-                    
+
                     while i < len(ast_nodes) and not (isinstance(ast_nodes[i], OPERAND) and ast_nodes[i].value == ']'):
                         if isinstance(ast_nodes[i], EOL):
                             break
@@ -591,7 +597,7 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                             param_name = ast_nodes[i].value
                             current_line += f'block_{param_name}'
                             i += 1
-                            
+
                             # Check for default value (=)
                             if i < len(ast_nodes) and isinstance(ast_nodes[i], OPERATOR) and ast_nodes[i].value == '=':
                                 current_line += '='
@@ -609,30 +615,30 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                         elif isinstance(ast_nodes[i], OPERAND) and ast_nodes[i].value == ',':
                             current_line += ','
                         i += 1
-                    
+
                     if i < len(ast_nodes) and isinstance(ast_nodes[i], OPERAND) and ast_nodes[i].value == ']':
                         current_line += ')'
                         i += 1
-                
+
                 continue
-            
+
             elif node.value == '->':
                 current_line += 'return '
                 i += 1
                 continue
-            
+
             elif node.value == 'for':
                 current_line += 'for '
                 i += 1
-                
+
                 while i < len(ast_nodes):
                     if isinstance(ast_nodes[i], EOL):
                         break
-                    
+
                     if isinstance(ast_nodes[i], KEYWORD) and ast_nodes[i].value == 'in':
                         current_line += ' in '
                         i += 1
-                        
+
                         iterable_tokens = []
                         while i < len(ast_nodes):
                             if isinstance(ast_nodes[i], EOL):
@@ -641,14 +647,14 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                 break
                             iterable_tokens.append(ast_nodes[i])
                             i += 1
-                        
+
                         has_range_operator = any(isinstance(t, OPERATOR) and t.value == '..' for t in iterable_tokens)
-                        
+
                         if has_range_operator:
                             range_start_tokens = []
                             range_end_tokens = []
                             found_range_op = False
-                            
+
                             for token in iterable_tokens:
                                 if isinstance(token, OPERATOR) and token.value == '..':
                                     found_range_op = True
@@ -656,27 +662,27 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                     range_start_tokens.append(token)
                                 else:
                                     range_end_tokens.append(token)
-                            
+
                             start_expr = ''.join(t.py_value if hasattr(t, 'py_value') else str(t) for t in range_start_tokens)
                             end_expr = ''.join(t.py_value if hasattr(t, 'py_value') else str(t) for t in range_end_tokens)
-                            
+
                             if start_expr and end_expr:
                                 current_line += f'range({start_expr}, {end_expr} + 1)'
                             else:
                                 current_line += ''.join(t.py_value if hasattr(t, 'py_value') else str(t) for t in iterable_tokens)
                         else:
                             current_line += ''.join(t.py_value if hasattr(t, 'py_value') else str(t) for t in iterable_tokens)
-                        
+
                         continue
-                    
+
                     if isinstance(ast_nodes[i], OPERAND) and ast_nodes[i].value.isalpha():
                         current_line += f'block_{ast_nodes[i].value}'
                     else:
                         current_line += ast_nodes[i].py_value
                     i += 1
-                
+
                 continue
-            
+
             else:
                 # Handle other keywords (if, elif, else, while)
                 if node.value in ['if', 'elif', 'while']:
@@ -687,11 +693,11 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                     current_line += node.py_value + ' '
                 i += 1
                 continue
-        
+
         if isinstance(node, TYPE):
             i += 1
             continue
-        
+
         if isinstance(node, OPERAND):
             if node.value == ':':
                 # Only skip colons for type annotations (when preceded by variable name/closing bracket)
@@ -729,33 +735,33 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                 break
                     bracket_content.append(ast_nodes[j])
                     j += 1
-                
+
                 prev_var_name = None
                 is_after_var = i > 0 and isinstance(ast_nodes[i-1], OPERAND) and ast_nodes[i-1].value not in ['[', ']', ',', ':', '=']
                 if is_after_var:
                     prev_var_name = ast_nodes[i-1].value
-                
+
                 is_collection = prev_var_name in collection_variables if prev_var_name else False
-                
+
                 has_colon_pair = False
                 has_comma = False
                 is_empty = len(bracket_content) == 0
                 colon_count = 0
                 comma_count = 0
-                
+
                 for tok in bracket_content:
                     if isinstance(tok, OPERAND):
                         if tok.value == ':':
                             colon_count += 1
                         elif tok.value == ',':
                             comma_count += 1
-                
+
                 # If ANY token contains a colon, it's a dict
                 if colon_count > 0:
                     has_colon_pair = True
                 if comma_count > 0:
                     has_comma = True
-                
+
                 if is_after_var and is_collection:
                     if is_empty:
                         current_line += '[:]'
@@ -772,7 +778,7 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                 current_part.append(tok)
                         if current_part:
                             slice_parts.append(current_part)
-                        
+
                         if len(slice_parts) == 2:
                             start_expr = ''.join(t.py_value for t in slice_parts[0])
                             end_expr = ''.join(t.py_value for t in slice_parts[1])
@@ -808,7 +814,7 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                         break
                             elif isinstance(tok, OPERAND) and tok.value == ']':
                                 depth -= 1
-                        
+
                         if has_dict:
                             raise BlockError("Cannot use dict (unhashable) type in set/list literal")
                         current_line += '['
@@ -864,29 +870,27 @@ def astToPy(ast_nodes: List[ASTNode]) -> str:
                                 raise BlockError(f"Undefined function '{node.value}'")
                             current_line += f'block_{node.value}'
                         elif isinstance(next_token, OPERATOR) and next_token.value == '=':
-                            # Variable assignment (new definition)
+                            # Variable assignment (new definition) - output the complete assignment
                             current_line += f'block_{node.value}'
+                            # Don't skip the = or value, let the normal flow handle them
                         elif isinstance(next_token, OPERAND) and next_token.value == ':':
                             # Type annotation - just output the identifier, type will be skipped
                             current_line += f'block_{node.value}'
                         else:
                             # Variable use
-                            if not type_system.is_defined_variable(node.value) and not type_system.is_defined_function(node.value):
-                                raise BlockError(f"Undefined identifier '{node.value}'")
-                            else:
-                                current_line += f'block_{node.value}'
+                            current_line += f'block_{node.value}'
                     else:
                         current_line += f'block_{node.value}'
             else:
                 current_line += node.py_value
         else:
             current_line += node.py_value
-        
+
         i += 1
-    
+
     if current_line:
         python_code.append(current_line)
-    
+
     return '\n'.join(python_code)
 
 
@@ -912,12 +916,12 @@ def main():
         print("Usage: python block_transpiler.py <input.block> [output.py]")
         print("   or: python block_transpiler.py -c '<block code>'")
         sys.exit(1)
-    
+
     if sys.argv[1] == '-c':
         if len(sys.argv) < 3:
             print("Error: -c requires code argument")
             sys.exit(1)
-        
+
         source = sys.argv[2]
         try:
             python_code = transpile(source)
@@ -928,19 +932,19 @@ def main():
     else:
         input_file = sys.argv[1]
         output_file = sys.argv[2] if len(sys.argv) > 2 else input_file.replace('.block', '.py')
-        
+
         try:
             with open(input_file, 'r') as f:
                 source = f.read()
-            
+
             python_code = transpile(source)
             with open("block_builtins.py", 'r') as f:
                 b = f.read()
             python_code = b + '\n' + python_code
-            
+
             with open(output_file, 'w') as f:
                 f.write(python_code)
-            
+
             print(f"Successfully transpiled {input_file} -> {output_file}")
         except FileNotFoundError:
             print(f"Error: File '{input_file}' not found", file=sys.stderr)
