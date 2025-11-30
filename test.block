@@ -1,115 +1,132 @@
-# ============================
-# CORE
-# ============================
-echo("=== CORE BUILTINS ===")
-echo(typeOf("hello"))
-echo(toStr(123))
-echo(toNum("10"))
+/* BLOCK DEMO: using only your builtins */
 
-# ============================
-# BOOLEAN CONSTANTS
-# ============================
-echo(true)
-echo(false)
-echo(none)
+echo("=== BASIC TYPES ===")
 
-# ============================
-# STRING BUILTINS
-# ============================
-s = "Hello World"
+name = "Abubakar"
+age = 19
+skills = ["python", "js", "block"]
 
-echo("=== STRING BUILTINS ===")
-echo(strToUpper(s))
-echo(strToLower(s))
-echo(strToTitle(s))
-echo(strToCapital(s))
-echo(strSwapCase(s))
+echo("name type: " + typeOf(name))
+echo("age type: " + typeOf(age))
+echo("skills type: " + typeOf(skills))
 
-echo(strSplit(s, " "))
-echo(strCount(s, "l"))
-echo(strEncode(s))
 
-echo(strStrip("   hi   "))
-echo(strLStrip("   left"))
-echo(strRStrip("right   "))
+/* --- LIST OPERATIONS --- */
 
-echo(strReplace(s, "World", "BLOCK"))
-echo(strStartsWith(s, "Hel"))
-echo(strEndsWith(s, "rld"))
-echo(strFind(s, "World"))
-echo(strLen(s))
+echo("=== LISTS ===")
 
-# ============================
-# NUMBER BUILTINS
-# ============================
-x = -12.75
-y = 5
+nums = [1, 2, 3]
+echo("nums: " + toStr(nums))
 
-echo("=== NUMBER BUILTINS ===")
-echo(numAbs(x))
-echo(numRound(x))
-echo(numRound(x, 1))
-echo(numFloor(x))
-echo(numCeil(x))
-echo(numTrunc(x))
-echo(numPow(y, 3))
-echo(numSqrt(16))
-echo(numClamp(15, 0, 10))
-echo(numSign(x))
-echo(numSign(0))
-echo(numSign(10))
+listAppend(nums, 10)
+echo("after append: " + toStr(nums))
 
-# ============================
-# LIST BUILTINS
-# ============================
-lst = [1, 2, 3]
+p = listPop(nums)
+echo("popped: " + toStr(p))
+echo("after pop: " + toStr(nums))
 
-echo("=== LIST BUILTINS ===")
-echo(listLen(lst))
-echo(listAppend(lst, 4))
-echo(listPop(lst))
-echo(listExtend(lst, [5, 6]))
-echo(listContains(lst, 5))
+listExtend(nums, [5, 6, 7])
+echo("after extend: " + toStr(nums))
 
-# ============================
-# TUPLE BUILTINS
-# ============================
-t = (10, 20, 30)
 
-echo("=== TUPLE BUILTINS ===")
-echo(tupleLen(t))
-echo(tupleContains(t, 20))
+/* --- SET OPERATIONS --- */
 
-# ============================
-# SET BUILTINS
-# ============================
-st = {1, 2, 3}
+echo("=== SETS ===")
 
-echo("=== SET BUILTINS ===")
-echo(setAdd(st, 4))
-echo(setRemove(st, 2))
-echo(setContains(st, 3))
+s = {1, 2, 3}
+setAdd(s, 9)
+setRemove(s, 2)
+echo("set: " + toStr(s))
 
-# ============================
-# MAP BUILTINS
-# ============================
-mp = ["a": 1, "b": 2, "c": 3]
 
-echo("=== MAP BUILTINS ===")
-echo(mapGet(mp, "a"))
-echo(mapGet(mp, "missing", "default"))
-echo(mapSet(mp, "d", 4))
-echo(mapKeys(mp))
-echo(mapValues(mp))
-echo(mapItems(mp))
+/* --- MAP OPERATIONS --- */
 
-# ============================
-# TYPE TESTS
-# ============================
-echo("=== TYPE TESTS ===")
-echo(typeOf(lst))
-echo(typeOf(t))
-echo(typeOf(st))
-echo(typeOf(mp))
-echo(typeOf(numAbs))
+echo("=== MAPS ===")
 
+user = [
+    "name": name,
+    "age": age,
+    "skills": skills
+]
+
+echo("user: " + toStr(user))
+
+mapSet(user, "age", 20)
+echo("updated user age: " + toStr(mapGet(user, "age", none)))
+
+echo("keys: " + toStr(mapKeys(user)))
+echo("values: " + toStr(mapValues(user)))
+
+
+/* --- STRING OPERATIONS --- */
+
+echo("=== STRINGS ===")
+
+text = "hello Block Language"
+echo(strToUpper(text))
+echo(strToLower(text))
+echo(strReplace(text, "Block", "Custom"))
+echo("split: " + toStr(strSplit(text, " ")))
+echo("count 'l': " + toStr(strCount(text, "l")))
+
+
+/* --- NUMBER OPERATIONS --- */
+
+echo("=== NUMBERS ===")
+
+echo("abs(-5) = " + toStr(numAbs(-5)))
+echo("round(3.1416, 2) = " + toStr(numRound(3.1416, 2)))
+echo("floor(5.8) = " + toStr(numFloor(5.8)))
+echo("ceil(5.1) = " + toStr(numCeil(5.1)))
+echo("sqrt(16) = " + toStr(numSqrt(16)))
+echo("cbrt(27) = " + toStr(numCbrt(27)))
+echo("sign(-10) = " + toStr(numSign(-10)))
+
+
+/* --- COLLECTION UTILITIES --- */
+
+echo("=== COLLECTION UTILITIES ===")
+
+chars = "abcdefg"
+
+onlyVowels = colFilter(chars, fn(c): c == "a" or c == "e")
+echo("vowels from 'abcdefg': " + toStr(onlyVowels))
+
+upperList = colApplyF(["a", "b", "c"], strToUpper)
+echo("apply uppercase: " + toStr(upperList))
+
+echo("contains 'c': " + toStr(colContains(chars, "c")))
+
+joined = colJoin(["x", "y", "z"], "-")
+echo("joined: " + joined)
+
+
+/* --- FILE I/O --- */
+
+echo("=== FILE I/O ===")
+
+file = fOpen("block_demo.txt", "w")
+fWrite(file, "Hello from BLOCK!\n")
+fWrite(file, "This file was written using builtins.\n")
+fClose(file)
+
+file2 = fOpen("block_demo.txt", "r")
+content = fRead(file2)
+fClose(file2)
+
+echo("file content:")
+echo(content)
+
+
+/* --- UNICODE --- */
+
+echo("=== UNICODE ===")
+
+echo("ucp('A') = " + toStr(ucp("A")))
+echo("char(66) = " + char(66))
+
+
+/* --- EXIT --- */
+
+echo("Done.")
+exit()

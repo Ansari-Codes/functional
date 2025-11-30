@@ -5,7 +5,7 @@ class BlockError(Exception):
 
 BUILTIN_TYPES = ("str", "num", "boolean", "list", "tuple", "set", "map", "func", "none")
 BUILTIN_COLLECTIONS = ("list", "tuple", "set", "map", "str")
-BUILTIN_FUNCTIONS = []
+BUILTIN_FUNCTIONS = ['exit']
 BUILTIN_CONSTANTS = {        
         'true': ('boolean', 'boolean(True)'),
         'false': ('boolean', 'boolean()'),
@@ -68,8 +68,7 @@ def builtin(func):
     return func
 
 @builtin
-def echo(*args, **kwargs):
-    print(*args, **kwargs)
+def echo(*args, **kwargs): print(*args, **kwargs)
 
 @builtin
 def typeOf(obj):
@@ -93,15 +92,17 @@ def typeOf(obj):
     return f"{t}"
 
 @builtin
-def toStr(obj):
-    return str(obj)
+def lenOf(obj):
+    if typeOf(obj) in BUILTIN_COLLECTIONS: return len(obj)
+    else: raise BlockError(f"lenOf: requires one of {', '.join(BUILTIN_COLLECTIONS)}")
+
+@builtin
+def toStr(obj): return str(obj)
 
 @builtin
 def toNum(obj):
-    try:
-        return float(obj)
-    except:
-        raise BlockError("toNum: cannot convert to number.")
+    try: return float(obj)
+    except: raise BlockError("toNum: cannot convert to number.")
 
 @builtin
 def toList(obj):
@@ -109,8 +110,7 @@ def toList(obj):
         if typeOf(obj) == 'str': return [i for i in obj]
         elif typeOf(obj) == 'map': return list(obj.items())
         else: return list(obj)
-    else:
-        raise BlockError(f"toList: Cannot convert object of type '{typeOf(obj)}' to list!")
+    else: raise BlockError(f"toList: Cannot convert object of type '{typeOf(obj)}' to list!")
 
 @builtin
 def toTuple(obj):
@@ -118,8 +118,7 @@ def toTuple(obj):
         if typeOf(obj) == 'str': return tuple([i for i in obj])
         elif typeOf(obj) == 'map': return tuple(obj.items())
         else: return tuple(obj)
-    else:
-        raise BlockError(f"toTuple: Cannot convert object of type '{typeOf(obj)}' to tuplr!")
+    else: raise BlockError(f"toTuple: Cannot convert object of type '{typeOf(obj)}' to tuplr!")
 
 @builtin
 def toSet(obj):
@@ -159,84 +158,67 @@ def toBool(obj): return boolean(obj)
 
 # String operations
 @builtin
-def strStrip(obj: str): 
-    return obj.strip() if _isString(obj, strStrip) else ""
+def strStrip(obj: str): return obj.strip() if _isString(obj, strStrip) else ""
 @builtin
-def strLStrip(obj: str):
-    return obj.lstrip() if _isString(obj, strLStrip) else ""
+def strLStrip(obj: str): return obj.lstrip() if _isString(obj, strLStrip) else ""
 @builtin
-def strRStrip(obj: str):
-    return obj.rstrip() if _isString(obj, strRStrip) else ""
+def strRStrip(obj: str): return obj.rstrip() if _isString(obj, strRStrip) else ""
 @builtin
-def strReplace(obj: str, old, new):
-    return obj.replace(old, new) if _isString(obj, strReplace) else ""
+def strReplace(obj: str, old, new): return obj.replace(old, new) if _isString(obj, strReplace) else ""
 @builtin
-def strStartsWith(obj: str, prefix):
-    return boolean(obj.startswith(prefix)) if _isString(obj, strStartsWith) else boolean()
+def strStartsWith(obj: str, prefix): return boolean(obj.startswith(prefix)) if _isString(obj, strStartsWith) else boolean()
 @builtin
-def strEndsWith(obj: str, suffix):
-    return boolean(obj.endswith(suffix)) if _isString(obj, strEndsWith) else boolean()
+def strEndsWith(obj: str, suffix): return boolean(obj.endswith(suffix)) if _isString(obj, strEndsWith) else boolean()
 @builtin
-def strFind(obj: str, substring):
-    return obj.find(substring) if _isString(obj, strFind) else -1
+def strFind(obj: str, substring): return obj.find(substring) if _isString(obj, strFind) else -1
 @builtin
-def strLen(obj: str):
-    return len(obj) if _isString(obj, strLen) else 0
+def strLen(obj: str): return len(obj) if _isString(obj, strLen) else 0
 @builtin
-def strToUpper(obj):
-    return obj.upper() if _isString(obj, strToUpper) else ""
+def strToUpper(obj): return obj.upper() if _isString(obj, strToUpper) else ""
 @builtin
-def strToLower(obj):
-    return obj.lower() if _isString(obj, strToLower) else ""
+def strToLower(obj): return obj.lower() if _isString(obj, strToLower) else ""
 @builtin
-def strToTitle(obj):
-    return obj.title() if _isString(obj, strToTitle) else ""
+def strToTitle(obj): return obj.title() if _isString(obj, strToTitle) else ""
 @builtin
 def strToCapital(obj):
-    if _isString(obj, strToCapital):
-        return obj.capitalize()
+    if _isString(obj, strToCapital): return obj.capitalize()
     return ""
 @builtin
-def strSwapCase(obj):
-    return obj.swapcase() if _isString(obj, strSwapCase) else ""
+def strSwapCase(obj): return obj.swapcase() if _isString(obj, strSwapCase) else ""
 @builtin
-def strSplit(obj, sep=None):
-    return obj.split(sep) if _isString(obj, strSplit) else []
+def strSplit(obj, sep=None): return obj.split(sep) if _isString(obj, strSplit) else []
 @builtin
-def strCount(obj, sub):
-    return obj.count(sub) if _isString(obj, strCount) else 0
+def strCount(obj, sub): return obj.count(sub) if _isString(obj, strCount) else 0
 @builtin
 def strEncode(obj, encoding='utf-8'):
     if _isString(obj, strEncode):
-        try:
-            return str(obj.encode(encoding))
-        except Exception:
-            raise BlockError(f"strEncode: invalid encoding '{encoding}'.")
+        try: return str(obj.encode(encoding))
+        except Exception: raise BlockError(f"strEncode: invalid encoding '{encoding}'.")
     return ""
 
 # Number Operations
 @builtin
-def numAbs(x):
-    return abs(x) if _isNum(x, numAbs) else 0
+def numAbs(x): return abs(x) if _isNum(x, numAbs) else 0
 @builtin
-def numRound(x, ndigits=0):
-    return round(x, int(ndigits)) if _isNum(x, numRound) else 0
+def numRound(x, ndigits=0): return round(x, int(ndigits)) if _isNum(x, numRound) else 0
 @builtin
 def numFloor(x):
-    if _isNum(x, numFloor):
-        return math.floor(x)
+    if _isNum(x, numFloor): return math.floor(x)
 @builtin
 def numCeil(x):
-    if _isNum(x, numCeil):
-        return math.ceil(x)
+    if _isNum(x, numCeil): return math.ceil(x)
 @builtin
 def numTrunc(x):
-    if _isNum(x, numTrunc):
-        return math.trunc(x)
+    if _isNum(x, numTrunc): return math.trunc(x)
 @builtin
-def numPow(a, b, mod):
+def numPow(a, b, mod=None):
     if _isNum(a, numPow) and _isNum(b, numPow):
-        return pow(a,b,mod)
+        if mod is None:return pow(a, b)
+        else:
+            try:return pow(int(a), int(b), int(mod))
+            except Exception: raise BlockError(
+                "numPow: for modulus variant, a, b, mod must be integer-convertible."
+                )
 @builtin
 def numSqrt(x):
     if _isNum(x, numSqrt):
@@ -244,15 +226,12 @@ def numSqrt(x):
         return math.sqrt(x)
 @builtin
 def numCbrt(x):
-    if _isNum(x, numCbrt):
-        return math.cbrt(x)
+    if _isNum(x, numCbrt): return math.cbrt(x)
 @builtin
 def numClamp(x, lo, hi):
-    if _isNum(x, numClamp) and _isNum(lo, numClamp) and _isNum(hi, numClamp):
-        return max(lo, min(x, hi))
+    if _isNum(x, numClamp) and _isNum(lo, numClamp) and _isNum(hi, numClamp): return max(lo, min(x, hi))
 @builtin
-def numSign(x):
-    return (-1 if x < 0 else (1 if x > 0 else 0)) if _isNum(x, numSign) else 0
+def numSign(x): return (-1 if x < 0 else (1 if x > 0 else 0)) if _isNum(x, numSign) else 0
 @builtin
 def numMin(x, y): return min(x, y)
 @builtin
@@ -272,8 +251,7 @@ def listAppend(lst, value):
         return lst
 @builtin
 def listPop(lst, index=-1):
-    if _isList(lst, listPop):
-        return lst.pop(index)
+    if _isList(lst, listPop): return lst.pop(index)
 @builtin
 def listExtend(lst, items):
     if _isList(lst, listExtend) and isinstance(items, list):
@@ -294,8 +272,7 @@ def setRemove(s, value):
 
 # Map operations
 @builtin
-def mapGet(m, key, default=None):
-    return m.get(key, default) if _isMap(m, mapGet) else none()
+def mapGet(m, key, default=None): return m.get(key, default) if _isMap(m, mapGet) else none()
 @builtin
 def mapSet(m, key, value):
     if _isMap(m, mapSet):
@@ -314,13 +291,20 @@ def mapItems(m):
 # Collection Specific
 @builtin
 def colIsEmtpy(obj):
-    if typeOf(obj) not in BUILTIN_COLLECTIONS:
-        raise BlockError(f"isEmtpy requires an obj of type {','.join([i for i in BUILTIN_COLLECTIONS])}.")
+    if typeOf(obj) not in BUILTIN_COLLECTIONS: 
+        raise BlockError(f"isEmtpy requires an obj of type {', '.join([i for i in BUILTIN_COLLECTIONS])}.")
     return boolean(len(obj) == 0)
 
 @builtin
-def colOfNums(start=0, stop=0, step=0, func=toNum):
-    return tuple([func(i) for i in range(start, stop + step, step)])
+def colOfNums(start=0, stop=0, step=1, func=toNum):
+    try:
+        start_i = int(start)
+        stop_i = int(stop)
+        step_i = int(step)
+    except Exception:
+        raise BlockError("colOfNums: start, stop and step must be integers.")
+    if step_i == 0: raise BlockError("colOfNums: step must not be zero.")
+    return tuple([func(i) for i in range(start_i, stop_i + step_i, step_i)])
 
 @builtin
 def colFilter(obj, func):
@@ -336,7 +320,7 @@ def colFilter(obj, func):
         elif typeOf(obj) == 'str':
             return ''.join([i for i in obj if func(i)])
     else:
-        raise BlockError(f"colFilter only accepts one of {','.join([i for i in BUILTIN_COLLECTIONS])}.")
+        raise BlockError(f"colFilter only accepts one of {', '.join([i for i in BUILTIN_COLLECTIONS])}.")
 
 @builtin
 def colApplyF(obj, func):
@@ -352,58 +336,52 @@ def colApplyF(obj, func):
         elif typeOf(obj) == 'str':
             return ''.join([func(i) for i in obj])
     else:
-        raise BlockError(f"colApplyF only accepts one of {','.join([i for i in BUILTIN_COLLECTIONS])}.")
+        raise BlockError(f"colApplyF only accepts one of {', '.join([i for i in BUILTIN_COLLECTIONS])}.")
 
 @builtin
 def colContains(obj, item):
-    if typeOf(obj) in BUILTIN_COLLECTIONS:
-        return item in obj
-    else:
-        raise BlockError(f"colContains: obj type should be one of {','.join([i for i in BUILTIN_COLLECTIONS])}.")
+    if typeOf(obj) in BUILTIN_COLLECTIONS: return item in obj
+    else: raise BlockError(f"colContains: obj type should be one of {', '.join([i for i in BUILTIN_COLLECTIONS])}.")
 
 @builtin
-def colJoin(obj, joiner=''):
-    return joiner.join(obj)
+def colJoin(obj, joiner=''): return joiner.join(obj)
 
 @builtin
-def colIndexOf(obj, item, start=0, stop=sys.maxsize):
-    if typeOf(obj) in [i for i in BUILTIN_COLLECTIONS if i not in ['map', 'set']]:
-        obj.index(item, start, stop)
+def colIndexOf(obj, item, start=0, stop=None):
+    valid_types = [i for i in BUILTIN_COLLECTIONS if i not in ('map', 'set')]
+    if typeOf(obj) in valid_types:
+        try:
+            if stop is None: return obj.index(item, start)
+            else: return obj.index(item, start, stop)
+        except ValueError: raise BlockError("colIndexOf: item not found.")
     else:
-        raise BlockError(f"colApplyF only accepts one of {','.join(
-            [i for i in BUILTIN_COLLECTIONS if i not in ['map', 'set']]
-        )}.")
+        raise BlockError(f"colIndexOf only accepts one of {', '.join(valid_types)}.")
 
 # Basic utilities
 @builtin
 def ask(prompt: str, forward=toStr):
-    if typeOf(forward) != 'func':
-        raise BlockError("ask: The `forward` parameter must be of type 'func'.")
+    if typeOf(forward) != 'func': raise BlockError("ask: The `forward` parameter must be of type 'func'.")
     inp = input(prompt)
     return forward(inp)
 
 @builtin
-def ucp(obj):
-    return ord(obj)
+def ucp(obj): return ord(obj)
 @builtin
-def char(obj):
-    return chr(obj)
+def char(obj): return chr(obj)
 
 # File io
 @builtin
-def fOpen(path, mode, *args):
-    return open(path, mode, *args)
+def fOpen(path, mode, *args): return open(path, mode, *args)
 @builtin
 def fRead(f):
     if f.readable(): return f.read()
     else: raise BlockError("Cannot read the file because it is not opened in reading mode.")
 @builtin
 def fWrite(f, content:str = ''):
-    if f.writeable(): return f.write(content)
+    if f.writable(): return f.write(content)
     else: raise BlockError("Cannot write in the file because it is not opened in writing mode.")
 @builtin
-def fClose(f):
-    return f.close()
+def fClose(f): return f.close()
 
 # Asynchoronous
 import asyncio
@@ -442,5 +420,4 @@ def aCreateTask(coro):
         return task
 
 @builtin
-def aIsCoroutine(obj):
-    return boolean(asyncio.iscoroutine(obj) or asyncio.iscoroutinefunction(obj))
+def aIsCoroutine(obj): return boolean(asyncio.iscoroutine(obj) or asyncio.iscoroutinefunction(obj))
